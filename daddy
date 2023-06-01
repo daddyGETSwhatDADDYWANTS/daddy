@@ -1,0 +1,98 @@
+-- Define the toggleable setting
+local isEspEnabled = false
+
+-- Function to create or update the ESP
+local function createOrUpdateESP(character)
+    -- Your ESP implementation goes here
+    -- This function should update the visual indicators for the given character
+    -- Use raycasting to detect objects even if they are behind walls
+
+    -- Example: Draw a box around the character's torso
+    local torso = character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso")
+    if torso then
+        local box = torso:FindFirstChild("ESPBox")
+        if not box then
+            box = Instance.new("BoxHandleAdornment")
+            box.Name = "ESPBox"
+            box.Size = torso.Size
+            box.Color3 = Color3.new(1, 0, 0) -- Red color
+            box.Transparency = 0.5
+            box.Adornee = torso
+            box.ZIndex = 5
+            box.AlwaysOnTop = true
+            box.Parent = torso
+        end
+    end
+end
+
+-- Function to remove the ESP
+local function removeESP(character)
+    -- Your ESP removal implementation goes here
+    -- This function should remove the visual indicators for the given character
+    -- Example: Remove the ESP box
+    local torso = character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso")
+    if torso then
+        local box = torso:FindFirstChild("ESPBox")
+        if box then
+            box:Destroy()
+        end
+    end
+end
+
+-- Function to show a notification
+local function showNotification(text)
+    local notification = Instance.new("ScreenGui")
+    notification.Name = "ESPNotification"
+    notification.Parent = game.Players.LocalPlayer.PlayerGui
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 200, 0, 50)
+    frame.Position = UDim2.new(1, -220, 1, -80) -- Position at the bottom right corner
+    frame.BackgroundTransparency = 0.5
+    frame.BackgroundColor3 = Color3.new(0, 0, 0)
+    frame.Parent = notification
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -10, 1, 0)
+    label.Position = UDim2.new(0, 5, 0, 0)
+    label.Text = text
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.TextSize = 18
+    label.BackgroundTransparency = 1
+    label.Parent = frame
+
+    wait(2) -- Display the notification for 2 seconds
+    notification:Destroy()
+end
+
+-- Function to toggle ESP on/off
+local function toggleEsp()
+    isEspEnabled = not isEspEnabled
+
+    local players = game.Players:GetPlayers()
+    for _, player in ipairs(players) do
+        if player ~= game.Players.LocalPlayer then
+            local character = player.Character
+            if character then
+                if isEspEnabled then
+                    createOrUpdateESP(character)
+                else
+                    removeESP(character)
+                end
+            end
+        end
+    end
+    
+    if isEspEnabled then
+        showNotification("ESP Enabled")
+    else
+        showNotification("ESP Disabled")
+    end
+end
+
+-- Trigger ESP when the "=" key is pressed
+game:GetService("UserInputService").InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Equals then
+        toggleEsp()
+    end
+end)
